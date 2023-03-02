@@ -13,6 +13,7 @@ function doIt() {
 		--exclude "LICENSE-MIT.txt" \
 		--exclude "iterm2/" \
 		--exclude "raycast/" \
+		--exclude "vscode/" \
 		-avh --no-perms . ~;
 	source ~/.bash_profile;
 }
