@@ -84,6 +84,7 @@ brew install --cask raycast
 # Media
 brew install --cask spotify
 brew install --cask vlc
+brew install --cask transmission
 
 # Remove outdated versions from the cellar.
 brew cleanup
