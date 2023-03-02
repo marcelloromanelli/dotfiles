@@ -1,0 +1,108 @@
+{
+  "eslint.format.enable": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "editor.fontFamily": "'Cascadia Code', 'Fira Code'",
+  "editor.fontLigatures": true,
+  "workbench.iconTheme": "material-icon-theme",
+  "yaml.schemas": {
+    "file:///Users/marcelloromanelli/.vscode/extensions/atlassian.atlascode-3.0.2/resources/schemas/pipelines-schema.json": "bitbucket-pipelines.yml"
+  },
+  "editor.multiCursorModifier": "ctrlCmd",
+  "atlascode.jira.jqlList": [
+    {
+      "id": "47d276ff-dc4e-4e6a-ba6d-7e93d5101778",
+      "enabled": true,
+      "name": "My getyourguide Issues",
+      "query": "assignee = currentUser() AND resolution = Unresolved ORDER BY lastViewed DESC",
+      "siteId": "3181e566-8529-4b6e-a457-6a36cc2012a1",
+      "monitor": true
+    }
+  ],
+  "workbench.colorTheme": "Atom Material Theme",
+  "editor.suggestSelection": "first",
+  "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
+  "git.autofetch": true,
+  // "[typescript]": {
+  //     "editor.defaultFormatter": "esbenp.prettier-vscode"
+  // },
+  "redhat.telemetry.enabled": true,
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "git.confirmSync": false,
+  "git.enableSmartCommit": true,
+  "openapi.securityAuditToken": "CiAa0KqD8litioEsoTVTJPWbPPNVudWAabejswXSDFIH5xIYJbOxbN975GI3pKpAfO4BOIaAe8Svsv9gGngJaBop",
+  // "[vue]": {
+  //     "editor.defaultFormatter": "esbenp.prettier-vscode"
+  // },
+  "[html]": {
+    "editor.defaultFormatter": "vscode.html-language-features"
+  },
+  "mssql.connections": [
+    {
+      "server": "{{put-server-name-here}}",
+      "database": "{{put-database-name-here}}",
+      "user": "{{put-username-here}}",
+      "password": ""
+    }
+  ],
+  "explorer.confirmDragAndDrop": false,
+  "atlascode.bitbucket.enabled": false,
+  "atlascode.bitbucket.contextMenus.enabled": false,
+  "atlascode.bitbucket.explorer.enabled": false,
+  "atlascode.bitbucket.explorer.nestFilesEnabled": false,
+  "atlascode.bitbucket.explorer.notifications.pullRequestCreated": false,
+  "githubPullRequests.pushBranch": "always",
+  "sql-formatter.uppercase": true,
+  "files.associations": {
+    "*.sql": "sql"
+  },
+  "npm.keybindingsChangedWarningShown": true,
+  "[vue]": {
+    "editor.defaultFormatter": "octref.vetur"
+  },
+  "vetur.format.defaultFormatterOptions": {
+    "js-beautify-html": {
+      "wrap_attributes": "force-expand-multiline"
+    },
+    "prettyhtml": {
+      "printWidth": 100,
+      "singleQuote": false,
+      "wrapAttributes": false,
+      "sortAttributes": false
+    }
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "githubPullRequests.createOnPublishBranch": "never",
+  "gitPrefix.pattern": "(TCK-[1-9]*)-(.*)",
+  "gitPrefix.isSuffix": true,
+  "gitPrefix.patternIgnoreCase": true,
+  "gitPrefix.replacement": "\"[\" + p1 + \"] \"",
+  "gitPrefix.replacementIsFunction": true,
+  "workbench.productIconTheme": "el-vsc-v1-icons",
+  "workbench.colorCustomizations": {
+    "statusBar.background": "#9155FD",
+    "statusBar.noFolderBackground": "#73cfa8",
+    "statusBar.debuggingBackground": "#73cfa8",
+    "statusBar.foreground": "#ffffff",
+    "statusBar.debuggingForeground": "#ffffff"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "window.zoomLevel": 2,
+  "githubPullRequests.pullBranch": "never",
+  "[scss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "prettier.printWidth": 180,
+  "atlascode.jira.explorer.fetchAllQueryResults": true,
+  "atlascode.jira.enabled": true,
+  "CodeGPT.query.language": "English"
+}
