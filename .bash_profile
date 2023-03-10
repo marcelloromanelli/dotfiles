@@ -50,3 +50,6 @@ complete -W "NSGlobalDomain" defaults;
 
 # Add `killall` tab completion for common apps
 complete -o "nospace" -W "Contacts Calendar Dock Finder Mail Safari iTunes SystemUIServer Terminal Twitter" killall;
+
+# Created by `pipx` on 2023-03-10 11:43:03
+export PATH="$PATH:/Users/marcello/Library/Python/3.11/bin"
