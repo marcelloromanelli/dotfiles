@@ -1,0 +1,41 @@
+config:
+  team: ticketing
+  username: marcelloromanelli
+  workhome: /Users/marcello.romanelli@getyourguide.com/gyg
+  id_rsa: ~/.ssh/id_rsa
+  xdebug: false
+  remote:
+    cluster: testing
+    cluster_service: testing1
+features:
+  docker-host: true
+  minio:
+    enabled: false
+    remote: false
+  sentry:
+    enabled: true
+    remote: true
+    remote_mode: shared
+  balancer: true
+  monitoring:
+    enabled: true
+    remote: false
+  redis:
+    enabled: true
+    remote: false
+  kafka:
+    enabled: true
+    remote: true
+    remote_mode: individual
+services:
+  ticketing-directus:
+    repo: git@github.com:getyourguide/ticketing-directus.git
+    native: true
+    balancer_port: '3000'
+  ticketing-storefront:
+    repo: git@github.com:getyourguide/ticketing-storefront.git
+    native: true
+    balancer_port: '3001'
+tunnels:
+  ticketing-directus:
+    db-aurora-postgres: 5433:5432
