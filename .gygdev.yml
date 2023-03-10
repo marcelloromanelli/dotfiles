@@ -1,7 +1,7 @@
 config:
   team: ticketing
   username: marcelloromanelli
-  workhome: /Users/marcello.romanelli@getyourguide.com/gyg
+  workhome: /Users/marcello/gyg
   id_rsa: ~/.ssh/id_rsa
   xdebug: false
   remote:
