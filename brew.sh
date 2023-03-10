@@ -50,6 +50,7 @@ brew install node
 brew install fnm
 brew install jq
 brew install thefuck
+brew install postgres
 
 ######################################################
 # APPS
