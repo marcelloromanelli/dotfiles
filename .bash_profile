@@ -2,6 +2,7 @@
 export PATH="$HOME/bin:$PATH";
 export PATH=/opt/homebrew/bin:$PATH
 export PATH=/Users/marcello/.gyg/bin:$PATH
+export PATH=/opt/homebrew/opt/libpq/bin:$PATH
 
 # Load the shell dotfiles, and then some:
 # * ~/.path can be used to extend `$PATH`.
