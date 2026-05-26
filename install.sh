@@ -99,6 +99,27 @@ cmd_link() {
     git -C "$REPO" config core.hooksPath .githooks
     ok "enabled pre-commit hooks (.githooks/)"
   fi
+
+  # Link .agents/skills/* into both ~/.cursor/skills and ~/.claude/skills so
+  # Cursor and Claude Code auto-discover them. Idempotent.
+  if [[ -d "$REPO/.agents/skills" ]]; then
+    for tool_dir in "$HOME/.cursor/skills" "$HOME/.claude/skills"; do
+      mkdir -p "$tool_dir"
+      for skill_dir in "$REPO"/.agents/skills/*/; do
+        [[ -d "$skill_dir" ]] || continue
+        local name; name=$(basename "$skill_dir")
+        local link="$tool_dir/$name"
+        if [[ -L "$link" && "$(readlink "$link")" == "${skill_dir%/}" ]]; then
+          skip "$link (already linked)"
+        elif [[ -e "$link" ]]; then
+          warn "$link exists and is not our symlink — leaving alone"
+        else
+          ln -s "${skill_dir%/}" "$link"
+          ok "linked $link"
+        fi
+      done
+    done
+  fi
   # Clean up empty backup dir.
   rmdir "$BACKUP" 2>/dev/null && rmdir "$(dirname "$BACKUP")" 2>/dev/null || true
   if [[ -d "$BACKUP" ]]; then info "Backups: $BACKUP"; fi
