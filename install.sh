@@ -101,7 +101,7 @@ cmd_link() {
   fi
   # Clean up empty backup dir.
   rmdir "$BACKUP" 2>/dev/null && rmdir "$(dirname "$BACKUP")" 2>/dev/null || true
-  [[ -d "$BACKUP" ]] && info "Backups: $BACKUP"
+  if [[ -d "$BACKUP" ]]; then info "Backups: $BACKUP"; fi
 }
 
 cmd_unlink() {
