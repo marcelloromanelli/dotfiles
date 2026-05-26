@@ -12,6 +12,7 @@ brew "gh"                        # GitHub CLI
 brew "git-delta"                 # syntax-highlighted git diffs (used by .gitconfig)
 brew "libpq"                     # psql client (no postgres server conflict)
 brew "mas"                       # Mac App Store CLI (sync /Brewfile / App Store)
+brew "mole"                      # Mac maintenance: `mo clean / uninstall / analyze / status`
 brew "pyenv"                     # Python version manager
 brew "render"                    # Render.com CLI
 brew "ripgrep"                   # faster grep, respects .gitignore
