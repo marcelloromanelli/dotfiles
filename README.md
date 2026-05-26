@@ -1,84 +1,94 @@
-# Marcello’s dotfiles
+# Marcello's dotfiles
 
-![Screenshot of my shell prompt](https://i.imgur.com/EkEtphC.png)
+Snapshot of my actual setup: **zsh + oh-my-zsh** for the shell,
+**Starship** for the prompt, **Ghostty** for the terminal,
+**MesloLGS Nerd Font**, and a curated `Brewfile` for everything else.
 
-## Installation
+This repo is not a framework — it's a backup. The files here are verbatim
+copies of what's in `$HOME`, symlinked back at install time so edits flow
+both directions.
 
-**Warning:** If you want to give these dotfiles a try, you should first fork this repository, review the code, and remove things you don’t want or need. Don’t blindly use my settings unless you know what that entails. Use at your own risk!
-
-### Using Git and the bootstrap script
-
-You can clone the repository wherever you want. (I like to keep it in `~/Projects/dotfiles`, with `~/dotfiles` as a symlink.) The bootstrapper script will pull in the latest version and copy the files to your home folder.
-
-```bash
-git clone https://github.com/marcelloromanelli/dotfiles.git && cd dotfiles && source bootstrap.sh
-```
-
-To update, `cd` into your local `dotfiles` repository and then:
+## Install on a fresh Mac
 
 ```bash
-source bootstrap.sh
+git clone https://github.com/marcelloromanelli/dotfiles.git ~/dotfiles
+cd ~/dotfiles
+./install.sh all
 ```
 
-Alternatively, to update while avoiding the confirmation prompt:
+That installs Homebrew + everything in [`Brewfile`](Brewfile), then symlinks
+the dotfiles into `$HOME`. Existing files in `$HOME` are moved to
+`~/.dotfiles-backup/<timestamp>/` before being replaced — nothing is
+destroyed.
+
+## Layout
+
+```
+~/dotfiles
+├── .zshrc                       → ~/.zshrc
+├── starship.toml                → ~/.config/starship.toml
+├── ghostty.config               → ~/.config/ghostty/config
+├── .gitconfig                   → ~/.gitconfig
+├── .gitignore                   → ~/.gitignore (global)
+├── .gitattributes               → ~/.gitattributes
+├── .editorconfig                → ~/.editorconfig
+├── Brewfile                     `brew bundle --file=Brewfile`
+├── Brewfile.work.example        copy to Brewfile.work for work brews (gitignored)
+├── macos/defaults.sh            opinionated `defaults write` for new Macs
+├── install.sh                   symlink installer + brew runner
+├── .agents/                     personal AI agent assets (skills, prompts, hooks)
+└── gitconfig.local.example      template for ~/.gitconfig.local (untracked)
+```
+
+## install.sh
+
+```
+./install.sh               # link everything (default)
+./install.sh brew          # install Homebrew + run brew bundle
+./install.sh macos         # apply macos/defaults.sh (asks first)
+./install.sh unlink        # remove every symlink we created
+./install.sh doctor        # verify the install
+./install.sh all           # brew + link + doctor
+```
+
+## Identity (untracked)
+
+Your `name` / `email` live in `~/.gitconfig.local`, which is **not** tracked.
+The first time you run `./install.sh`, it seeds that file from
+[`gitconfig.local.example`](gitconfig.local.example). Edit afterwards:
+
+```ini
+[user]
+    name = Marcello Romanelli
+    email = you@example.com
+```
+
+`~/.gitconfig` includes it automatically.
+
+## Work brews (private tap)
+
+The GetYourGuide tap (`getyourguide/dev`) is SSH-only. To keep the public
+Brewfile installable for anyone, work-specific brews live in
+`Brewfile.work` (gitignored). To enable:
 
 ```bash
-set -- -f; source bootstrap.sh
+cp Brewfile.work.example Brewfile.work
+./install.sh brew    # picks up both files automatically
 ```
 
-### Git-free install
+## .agents/
 
-To install these dotfiles without Git:
+This is the version-controlled home for my personal AI agent assets — skills,
+prompts, rules, hooks, MCP configs. The directory is not auto-linked into any
+specific tool because each tool wants things in a different place
+(`~/.claude/skills/`, `~/.cursor/skills-cursor/`, etc.); see
+[.agents/README.md](.agents/README.md) for the per-tool symlink snippets.
 
-```bash
-cd; curl -#L https://github.com/marcelloromanelli/dotfiles/tarball/main | tar -xzv --strip-components 1 --exclude={README.md,bootstrap.sh,.osx,LICENSE-MIT.txt}
-```
+## Updating
 
-To update later on, just run that command again.
+Installs are symlinks, so `git pull` in `~/dotfiles` updates your live config
+instantly. Reload the shell with `exec zsh -l`.
 
-### Specify the `$PATH`
+## License
 
-If `~/.path` exists, it will be sourced along with the other files, before any feature testing (such as [detecting which version of `ls` is being used](https://github.com/marcelloromanelli/dotfiles/blob/aff769fd75225d8f2e481185a71d5e05b76002dc/.aliases#L21-L26)) takes place.
-
-Here’s an example `~/.path` file that adds `/usr/local/bin` to the `$PATH`:
-
-```bash
-export PATH="/usr/local/bin:$PATH"
-```
-
-### Add custom commands without creating a new fork
-
-If `~/.extra` exists, it will be sourced along with the other files. You can use this to add a few custom commands without the need to fork this entire repository, or to add commands you don’t want to commit to a public repository.
-
-My `~/.extra` looks something like this:
-
-```bash
-# Git credentials
-# Not in the repository, to prevent people from accidentally committing under my name
-GIT_AUTHOR_NAME="Marcello Romaneli"
-GIT_COMMITTER_NAME="$GIT_AUTHOR_NAME"
-git config --global user.name "$GIT_AUTHOR_NAME"
-GIT_AUTHOR_EMAIL="marcelloromanelli@me.com"
-GIT_COMMITTER_EMAIL="$GIT_AUTHOR_EMAIL"
-git config --global user.email "$GIT_AUTHOR_EMAIL"
-```
-
-You could also use `~/.extra` to override settings, functions and aliases from my dotfiles repository. It’s probably better to [fork this repository](https://github.com/marcelloromanelli/dotfiles/fork) instead, though.
-
-### Sensible macOS defaults
-
-When setting up a new Mac, you may want to set some sensible macOS defaults:
-
-```bash
-./.macos
-```
-
-### Install Homebrew formulae
-
-When setting up a new Mac, you may want to install some common [Homebrew](https://brew.sh/) formulae (after installing Homebrew, of course):
-
-```bash
-./brew.sh
-```
-
-Some of the functionality of these dotfiles depends on formulae installed by `brew.sh`. If you don’t plan to run `brew.sh`, you should look carefully through the script and manually install any particularly important ones. A good example is Bash/Git completion: the dotfiles use a special version from Homebrew.
+MIT — see [LICENSE-MIT.txt](LICENSE-MIT.txt).

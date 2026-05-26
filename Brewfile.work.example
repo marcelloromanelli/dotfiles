@@ -1,0 +1,11 @@
+# Brewfile.work — work-specific brews. Copy to Brewfile.work (gitignored)
+# and run:  brew bundle --file=Brewfile.work
+#
+# These require SSH access to the GetYourGuide org on GitHub, so they cannot
+# live in the public Brewfile (it would fail for anyone else cloning this).
+
+tap "getyourguide/dev", "git@github.com:getyourguide/dev"
+
+brew "getyourguide/dev/gygauth"
+brew "getyourguide/dev/dev-bundle"
+brew "getyourguide/dev/gdbc"

@@ -1,190 +1,178 @@
-[user]
-    name = Marcello Romanelli
-    email = marcello.romanelli@getyourguide.com
+; Personal identity (user.name/email) lives in ~/.gitconfig.local, which is
+; sourced via the [include] line at the bottom of this file and is NOT
+; tracked in the dotfiles repo. See README.md.
 
-[alias]
+[init]
+	defaultBranch = main
 
-	# View abbreviated SHA, description, and history graph of the latest 20 commits.
-	l = log --pretty=oneline -n 20 --graph --abbrev-commit
+[core]
+	excludesfile = ~/.gitignore
+	attributesfile = ~/.gitattributes
+	whitespace = space-before-tab,-indent-with-non-tab,trailing-space
+	trustctime = false
+	precomposeunicode = false
+	untrackedCache = true
+	# Use delta as pager when available; falls back to less otherwise.
+	pager = delta
 
-	# View the current working tree status using the short format.
-	s = status -s
+[interactive]
+	diffFilter = delta --color-only
 
-	# Checkout branch
-	co = checkout -b
-
-	# Show the diff between the latest commit and the current state.
-	d = !"git diff-index --quiet HEAD -- || clear; git --no-pager diff --patch-with-stat"
-
-	# `git di $number` shows the diff between the state `$number` revisions ago and the current state.
-	di = !"d() { git diff --patch-with-stat HEAD~$1; }; git diff-index --quiet HEAD -- || clear; d"
-
-	# Pull in remote changes for the current repository and all its submodules.
-	p = pull --recurse-submodules
-
-	# Clone a repository including all submodules.
-	c = clone --recursive
-
-	# Commit all changes.
-	ca = !git add -A && git commit -av
-
-	# Switch to a branch, creating it if necessary.
-	go = "!f() { git checkout -b \"$1\" 2> /dev/null || git checkout \"$1\"; }; f"
-
-	# Show verbose output about tags, branches or remotes
-	tags = tag -l
-	branches = branch --all
-	remotes = remote --verbose
-
-	# List aliases.
-	aliases = config --get-regexp alias
-
-	# Amend the currently staged files to the latest commit.
-	amend = commit --amend --reuse-message=HEAD
-
-	# Credit an author on the latest commit.
-	credit = "!f() { git commit --amend --author \"$1 <$2>\" -C HEAD; }; f"
-
-	# Interactive rebase with the given number of latest commits.
-	reb = "!r() { git rebase -i HEAD~$1; }; r"
-
-	# Remove the old tag with this name and tag the latest commit with it.
-	retag = "!r() { git tag -d $1 && git push origin :refs/tags/$1 && git tag $1; }; r"
-
-	# Find branches containing commit
-	fb = "!f() { git branch -a --contains $1; }; f"
-
-	# Find tags containing commit
-	ft = "!f() { git describe --always --contains $1; }; f"
-
-	# Find commits by source code
-	fc = "!f() { git log --pretty=format:'%C(yellow)%h  %Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d' --decorate --date=short -S$1; }; f"
-
-	# Find commits by commit message
-	fm = "!f() { git log --pretty=format:'%C(yellow)%h  %Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d' --decorate --date=short --grep=$1; }; f"
-
-	# Remove branches that have already been merged with main.
-	# a.k.a. ‘delete merged’
-	dm = "!git branch --merged | grep -v '\\*' | xargs -n 1 git branch -d"
-
-	# List contributors with number of commits.
-	contributors = shortlog --summary --numbered
-
-	# Show the user email for the current repository.
-	whoami = config user.email
+[delta]
+	navigate = true
+	line-numbers = true
+	side-by-side = false
+	syntax-theme = ansi
 
 [apply]
-
-	# Detect whitespace errors when applying a patch.
 	whitespace = fix
 
 [branch]
-
-	# Show most recently changed branches first.
 	sort = -committerdate
 
-[core]
-
-	# Use custom `.gitignore` and `.gitattributes`.
-	excludesfile = ~/.gitignore
-	attributesfile = ~/.gitattributes
-
-	# Treat spaces before tabs and all kinds of trailing whitespace as an error.
-	# [default] trailing-space: looks for spaces at the end of a line
-	# [default] space-before-tab: looks for spaces before tabs at the beginning of a line
-	whitespace = space-before-tab,-indent-with-non-tab,trailing-space
-
-	# Make `git rebase` safer on macOS.
-	# More info: <http://www.git-tower.com/blog/make-git-rebase-safe-on-osx/>
-	trustctime = false
-
-	# Prevent showing files whose names contain non-ASCII symbols as unversioned.
-	# http://michael-kuehnel.de/git/2014/11/21/git-mac-osx-and-german-umlaute.html
-	precomposeunicode = false
-
-	# Speed up commands involving untracked files such as `git status`.
-	# https://git-scm.com/docs/git-update-index#_untracked_cache
-	untrackedCache = true
+[tag]
+	sort = version:refname
 
 [color]
-
-	# Use colors in Git commands that are capable of colored output when
-	# outputting to the terminal. (This is the default setting in Git ≥ 1.8.4.)
 	ui = auto
 
 [color "branch"]
-
 	current = yellow reverse
 	local = yellow
 	remote = green
 
 [color "diff"]
-
 	meta = yellow bold
-	frag = magenta bold # line info
-	old = red # deletions
-	new = green # additions
+	frag = magenta bold
+	old = red
+	new = green
 
 [color "status"]
-
 	added = yellow
 	changed = green
 	untracked = cyan
 
-[commit]
+[column]
+	ui = auto
 
-	# https://help.github.com/articles/signing-commits-using-gpg/
-	# gpgsign = true
+[commit]
+	; Uncomment if your gpg/ssh signing is set up.
+	; gpgsign = true
 
 [diff]
-
-	# Detect copies as well as renames.
+	algorithm = histogram
+	colorMoved = default
 	renames = copies
 
 [diff "bin"]
-
-	# Use `hexdump` to diff binary files.
 	textconv = hexdump -v -C
 
-[help]
+[fetch]
+	prune = true
+	pruneTags = true
+	all = true
 
-	# Automatically correct and execute mistyped commands.
-	autocorrect = 1
+[help]
+	autocorrect = prompt
 
 [merge]
-
-	# Include summaries of merged commits in newly created merge commit messages
+	conflictStyle = zdiff3
 	log = true
 
-[push]
+[pull]
+	rebase = false
 
-	# https://git-scm.com/docs/git-config#git-config-pushdefault
+[push]
 	default = simple
-	# Make `git push` push relevant annotated tags when pushing branches out.
+	autoSetupRemote = true
 	followTags = true
 
-# URL shorthands
+[rebase]
+	autoSquash = true
+	autoStash = true
+	updateRefs = true
+
+[rerere]
+	enabled = true
+	autoUpdate = true
+
+[status]
+	showUntrackedFiles = all
 
 [url "git@github.com:"]
-
 	insteadOf = "gh:"
 	pushInsteadOf = "github:"
 	pushInsteadOf = "git://github.com/"
 
 [url "git://github.com/"]
-
 	insteadOf = "github:"
 
 [url "git@gist.github.com:"]
-
 	insteadOf = "gst:"
 	pushInsteadOf = "gist:"
 	pushInsteadOf = "git://gist.github.com/"
 
 [url "git://gist.github.com/"]
-
 	insteadOf = "gist:"
 
-[init]
+[alias]
+	# Status / log.
+	s = status -sb
+	l = log --pretty=oneline -n 20 --graph --abbrev-commit
+	lg = log --graph --pretty=format:'%C(yellow)%h%Creset %C(cyan)%an%Creset %s %C(green)(%cr)%Creset %C(magenta)%d%Creset' --all
+	last = log -1 HEAD --stat
 
-	defaultBranch = main
+	# Branching.
+	co = checkout
+	cob = checkout -b
+	br = branch
+	# Switch to a branch, creating it if necessary.
+	go = "!f() { git checkout -b \"$1\" 2> /dev/null || git checkout \"$1\"; }; f"
+
+	# Diff.
+	d = !"git diff-index --quiet HEAD -- || clear; git --no-pager diff --patch-with-stat"
+	di = !"d() { git diff --patch-with-stat HEAD~$1; }; git diff-index --quiet HEAD -- || clear; d"
+	ds = diff --staged
+
+	# Commit.
+	ca = !git add -A && git commit -av
+	amend = commit --amend --reuse-message=HEAD
+	amendf = commit --amend --no-edit
+	wip = !git add -A && git commit -m 'wip' --no-verify
+	undo = reset --soft HEAD~1
+
+	# Sync.
+	p = pull --recurse-submodules
+	c = clone --recursive
+
+	# Discovery.
+	tags = tag -l
+	branches = branch --all
+	remotes = remote --verbose
+	aliases = config --get-regexp alias
+	contributors = shortlog --summary --numbered
+
+	# Find.
+	fb = "!f() { git branch -a --contains $1; }; f"
+	ft = "!f() { git describe --always --contains $1; }; f"
+	fc = "!f() { git log --pretty=format:'%C(yellow)%h  %Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d' --decorate --date=short -S$1; }; f"
+	fm = "!f() { git log --pretty=format:'%C(yellow)%h  %Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d' --decorate --date=short --grep=$1; }; f"
+
+	# Maintenance.
+	# Delete branches that have been merged into the current branch.
+	dm = "!git branch --merged | grep -v '\\*' | xargs -n 1 git branch -d"
+	# Prune branches whose upstream is gone.
+	prune-gone = "!git fetch --prune && git branch -vv | awk '/: gone]/{print $1}' | xargs -r git branch -D"
+
+	# Retag.
+	retag = "!r() { git tag -d $1 && git push origin :refs/tags/$1 && git tag $1; }; r"
+
+	# Interactive rebase last N commits.
+	reb = "!r() { git rebase -i HEAD~$1; }; r"
+
+	whoami = config user.email
+
+; Per-machine identity, signing keys, and any private config.
+; This file is NOT tracked; copy gitconfig.local.example into place.
+[include]
+	path = ~/.gitconfig.local

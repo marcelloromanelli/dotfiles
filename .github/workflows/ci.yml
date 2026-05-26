@@ -1,0 +1,36 @@
+name: ci
+
+on:
+  push:
+    branches: [main, modernize-2026]
+  pull_request:
+    branches: [main]
+
+jobs:
+  shellcheck:
+    name: shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ludeeus/action-shellcheck@master
+        env:
+          SHELLCHECK_OPTS: -e SC1090 -e SC1091 -e SC2155 -e SC2086
+        with:
+          severity: warning
+          scandir: '.'
+          additional_files: 'install.sh macos/defaults.sh'
+
+  zsh-syntax:
+    name: zsh -n
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y zsh
+      - run: zsh -n .zshrc
+
+  brewfile:
+    name: brewfile lint
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: brew bundle list --file=Brewfile >/dev/null

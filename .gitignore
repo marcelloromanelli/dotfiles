@@ -1,14 +1,38 @@
-# Compiled Python files
-*.pyc
+# This file is installed as ~/.gitignore (global gitignore).
+# It also serves as the repo's gitignore for the dotfiles repo itself.
 
-# Folder view configuration files
+# macOS metadata.
 .DS_Store
-Desktop.ini
-
-# Thumbnail cache files
+.AppleDouble
+.LSOverride
 ._*
-Thumbs.db
-
-# Files that might appear on external disks
+Icon?
 .Spotlight-V100
 .Trashes
+
+# Windows metadata.
+Desktop.ini
+Thumbs.db
+
+# Editor / IDE.
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Compiled / packaged.
+*.pyc
+__pycache__/
+node_modules/
+.venv/
+.env
+
+# Direnv.
+.envrc
+
+# Local override files (consumed by install.sh, never tracked).
+.gitconfig.local
+
+# Work-specific Brewfile (uses private SSH-only tap).
+Brewfile.work

@@ -1,0 +1,134 @@
+# Starship prompt config — https://starship.rs/config/
+# Style: "Tokyo" — modern two-line, colored, time on the right.
+# Reload after editing: just open a new prompt (no source needed).
+
+# Breathing room between commands
+add_newline = true
+command_timeout = 1000
+
+format = """
+[](fg:#bb9af7) \
+$username\
+$hostname\
+[](fg:#7aa2f7) $directory\
+$git_branch\
+$git_status\
+$python\
+$nodejs\
+$aws\
+$cmd_duration\
+$line_break\
+$character"""
+
+right_format = """
+$time"""
+
+# -----------------------------------------------------------------------------
+# Prompt character
+# -----------------------------------------------------------------------------
+[character]
+success_symbol = "[❯](bold #7aa2f7)"
+error_symbol = "[❯](bold #f7768e)"
+vimcmd_symbol = "[❮](bold #9ece6a)"
+
+# -----------------------------------------------------------------------------
+# Leading user / host (Apple glyph is in the main format string above)
+# -----------------------------------------------------------------------------
+# Only show username when it's not the default (e.g. SSH or sudo)
+[username]
+show_always = false
+style_user = "bold #e0af68"
+style_root = "bold #f7768e"
+format = "[$user]($style) "
+
+# Only show hostname over SSH
+[hostname]
+ssh_only = true
+style = "bold #e0af68"
+format = "at [$hostname]($style) "
+
+# -----------------------------------------------------------------------------
+# Directory
+# -----------------------------------------------------------------------------
+[directory]
+truncation_length = 3
+truncate_to_repo = true
+truncation_symbol = "…/"
+style = "bold #7dcfff"
+read_only = " 󰌾"
+read_only_style = "#f7768e"
+
+[directory.substitutions]
+"Documents" = "󰈙 "
+"Downloads" = " "
+"Music" = "󰝚 "
+"Pictures" = " "
+"Developer" = "󰲋 "
+
+# -----------------------------------------------------------------------------
+# Git
+# -----------------------------------------------------------------------------
+[git_branch]
+symbol = " "
+style = "bold #bb9af7"
+format = "[ $symbol$branch]($style)"
+
+[git_status]
+style = "bold #e0af68"
+format = '[ $all_status$ahead_behind]($style)'
+ahead = " ⇡${count}"
+behind = " ⇣${count}"
+diverged = " ⇡${ahead_count}⇣${behind_count}"
+conflicted = " ="
+untracked = " ?${count}"
+modified = " !${count}"
+staged = " +${count}"
+stashed = " \\$${count}"
+deleted = " ✘${count}"
+
+# -----------------------------------------------------------------------------
+# Languages / cloud — only show inside relevant projects
+# -----------------------------------------------------------------------------
+[python]
+symbol = " "
+style = "bold #f7768e"
+format = '[ $symbol$pyenv_prefix(${version} )(\($virtualenv\) )]($style)'
+pyenv_version_name = true
+
+[nodejs]
+symbol = " "
+style = "bold #9ece6a"
+format = "[ $symbol($version )]($style)"
+detect_files = ["package.json", ".node-version", ".nvmrc"]
+
+[aws]
+symbol = " "
+style = "bold #e0af68"
+format = '[ $symbol($profile )(\($region\) )]($style)'
+
+[aws.region_aliases]
+eu-central-1 = "eu-c1"
+us-east-1 = "us-e1"
+
+# -----------------------------------------------------------------------------
+# Command duration — only shown when something took >2s
+# -----------------------------------------------------------------------------
+[cmd_duration]
+min_time = 2_000
+style = "bold #f7768e"
+format = " [took $duration]($style)"
+
+# -----------------------------------------------------------------------------
+# Time on the right edge
+# -----------------------------------------------------------------------------
+[time]
+disabled = false
+style = "bold #565f89"
+format = '[$time]($style)'
+time_format = "%H:%M"
+
+# -----------------------------------------------------------------------------
+# Hide noisy modules
+# -----------------------------------------------------------------------------
+[package]
+disabled = true
