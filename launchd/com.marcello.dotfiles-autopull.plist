@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  LaunchAgent: runs scripts/autopull.sh once a day at 12:00.
+  If the Mac is asleep at 12:00, it fires on the next wake.
+
+  install.sh launchd installs this into ~/Library/LaunchAgents/ after
+  substituting __DOTFILES__ with the repo's absolute path, and loads it
+  via `launchctl bootstrap gui/$UID`.
+
+  Unload with:  launchctl bootout gui/$UID ~/Library/LaunchAgents/com.marcello.dotfiles-autopull.plist
+  Force-run:    launchctl kickstart -k gui/$UID/com.marcello.dotfiles-autopull
+  Log:          ~/Library/Logs/dotfiles-autopull.log
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.marcello.dotfiles-autopull</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>__DOTFILES__/scripts/autopull.sh</string>
+  </array>
+
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key><integer>12</integer>
+    <key>Minute</key><integer>0</integer>
+  </dict>
+
+  <!-- Also run shortly after login, in case the Mac was off at noon. -->
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>__HOME__/Library/Logs/dotfiles-autopull.stdout.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>__HOME__/Library/Logs/dotfiles-autopull.stderr.log</string>
+
+  <!-- Inherit PATH from the user's shell. Needed so `git` is found. -->
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+</dict>
+</plist>

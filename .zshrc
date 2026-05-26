@@ -204,6 +204,107 @@ add-zsh-hook precmd  _title_idle      # before each prompt → reset to idle tit
 add-zsh-hook preexec _title_running   # before each command → show command in title
 
 # =============================================================================
+# Dotfiles helper: `dots`
+# =============================================================================
+# DOTFILES — let scripts and functions locate the repo without hardcoding.
+export DOTFILES="${DOTFILES:-$HOME/projects/dotfiles}"
+
+dots() {
+  local repo="$DOTFILES"
+  [[ -d "$repo" ]] || { echo "DOTFILES not found: $repo" >&2; return 1; }
+  local cmd="${1:-status}"; shift 2>/dev/null || true
+
+  case "$cmd" in
+    cd)      cd "$repo" ;;
+    status|"")
+      # Fast: NO network. Use last-known-fetched origin ref. Run `dots pull`
+      # to refresh the remote state (which runs the LaunchAgent's safe fetch).
+      ( cd "$repo" && {
+          local branch ahead behind dirty last
+          branch=$(git rev-parse --abbrev-ref HEAD)
+          ahead=$(git rev-list --count "origin/$branch..HEAD" 2>/dev/null || echo 0)
+          behind=$(git rev-list --count "HEAD..origin/$branch" 2>/dev/null || echo 0)
+          dirty=$(git status --porcelain | wc -l | tr -d ' ')
+          last=$(git log -1 --format='%h %s (%cr)')
+          echo "  repo:    $repo"
+          echo "  branch:  $branch  (ahead $ahead, behind $behind — vs last fetch)"
+          echo "  dirty:   $dirty file(s)"
+          echo "  last:    $last"
+        }
+      ) ;;
+    edit)
+      if [[ $# -eq 0 ]]; then
+        ( cd "$repo" && ${EDITOR:-vim} . )
+      else
+        ${EDITOR:-vim} "$repo/$1"
+      fi ;;
+    diff)    git -C "$repo" diff "$@" ;;
+    log)     git -C "$repo" log --oneline --decorate --graph -20 "$@" ;;
+    pull)    bash "$repo/scripts/autopull.sh" && echo "see ~/Library/Logs/dotfiles-autopull.log" ;;
+    push)    git -C "$repo" push "$@" ;;
+    sync)
+      local msg="${1:-update}"
+      ( cd "$repo" && {
+          # Stash + rebase + pop pattern, with fallback to clean push.
+          if ! git diff --quiet || ! git diff --cached --quiet; then
+            git add -A && git commit -m "$msg" || return 1
+          fi
+          git pull --rebase --autostash || { echo "rebase failed — resolve and run 'dots push'" >&2; return 1; }
+          git push
+        }
+      ) ;;
+    install)  bash "$repo/install.sh" link ;;
+    doctor)   bash "$repo/install.sh" doctor ;;
+    update)   bash "$repo/install.sh" update ;;
+    autopull-log) tail -40 "$HOME/Library/Logs/dotfiles-autopull.log" 2>/dev/null || echo "no log yet" ;;
+    help|-h|--help)
+      cat <<EOF
+dots — dotfiles helper
+
+  dots                  short status (branch, ahead/behind, dirty count)
+  dots status           same as above
+  dots cd               cd into the repo
+  dots edit [file]      open the repo (or a specific file) in \$EDITOR
+  dots diff [args]      git diff inside the repo
+  dots log              recent commits
+  dots sync "msg"       commit any changes, rebase-pull, push
+  dots pull             safe non-destructive pull (uses scripts/autopull.sh)
+  dots push             git push
+  dots install          rerun install.sh link
+  dots doctor           rerun install.sh doctor
+  dots update           git pull + relink
+  dots autopull-log     tail the LaunchAgent's log
+EOF
+      ;;
+    *) echo "dots: unknown subcommand '$cmd' (try 'dots help')" >&2; return 1 ;;
+  esac
+}
+
+# Hourly dirty-state warning. Cached via timestamp file so we touch git at most
+# once per hour. Only warns when the working tree is dirty AND last commit is
+# older than 24h (so a "still in progress" change doesn't spam).
+_dots_dirty_check() {
+  local stamp="${TMPDIR:-/tmp}/dots-dirty-check-${USER}"
+  local now last
+  now=$(date +%s)
+  last=0
+  [[ -r "$stamp" ]] && last=$(cat "$stamp" 2>/dev/null || echo 0)
+  (( now - last < 3600 )) && return
+  echo "$now" > "$stamp"
+
+  [[ -d "$DOTFILES/.git" ]] || return
+  local dirty last_commit age
+  dirty=$(git -C "$DOTFILES" status --porcelain 2>/dev/null)
+  [[ -z "$dirty" ]] && return
+  last_commit=$(git -C "$DOTFILES" log -1 --format=%ct 2>/dev/null) || return
+  age=$(( now - last_commit ))
+  (( age < 86400 )) && return  # <24h since last commit — probably still iterating
+
+  printf '\033[33m⚠\033[0m dotfiles dirty for %dh; run \033[1mdots sync "msg"\033[0m to ship\n' "$(( age / 3600 ))"
+}
+_dots_dirty_check
+
+# =============================================================================
 # Starship prompt (must be initialized LAST so it owns PROMPT/RPROMPT)
 # =============================================================================
 eval "$(starship init zsh)"

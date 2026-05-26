@@ -4,12 +4,13 @@
 #
 # Usage:
 #   ./install.sh                # link everything (default)
-#   ./install.sh brew           # install Homebrew + run brew bundle
+#   ./install.sh brew           # install Homebrew + run brew bundle (+ .local + .work)
 #   ./install.sh macos          # apply macos-defaults.sh (asks first)
+#   ./install.sh launchd        # install the daily autopull LaunchAgent
 #   ./install.sh update         # git pull + re-link
 #   ./install.sh doctor         # verify everything is wired up
 #   ./install.sh unlink         # remove all symlinks
-#   ./install.sh all            # brew + link + doctor
+#   ./install.sh all            # brew + link + launchd + doctor
 
 set -euo pipefail
 
@@ -66,18 +67,38 @@ cmd_link() {
   for entry in "${LINKS[@]}"; do
     link_one $entry
   done
-  # Seed untracked override files once each (never overwrite).
-  for pair in "gitconfig.local.example:.gitconfig.local" \
-              "extra.example:.extra"; do
-    local src="${pair%%:*}" dst="$HOME/${pair##*:}"
-    if [[ ! -e "$dst" ]]; then
-      cp "$REPO/$src" "$dst"
-      chmod 600 "$dst"
-      ok "seeded ~/${pair##*:} (edit me)"
+  # Seed the gitconfig.local from example once (never overwrite).
+  if [[ ! -e "$HOME/.gitconfig.local" ]]; then
+    cp "$REPO/gitconfig.local.example" "$HOME/.gitconfig.local"
+    chmod 600 "$HOME/.gitconfig.local"
+    ok "seeded ~/.gitconfig.local (edit me)"
+  else
+    skip "~/.gitconfig.local already exists"
+  fi
+
+  # Seed ~/.extra from extra.tpl. If 1Password CLI is signed in, run
+  # `op inject` to materialize op:// references; otherwise copy literally
+  # (placeholders will be visible — user runs op inject after `op signin`).
+  if [[ ! -e "$HOME/.extra" ]]; then
+    if command -v op >/dev/null && op whoami >/dev/null 2>&1; then
+      op inject -i "$REPO/extra.tpl" -o "$HOME/.extra"
+      chmod 600 "$HOME/.extra"
+      ok "materialized ~/.extra from extra.tpl via op inject"
     else
-      skip "~/${pair##*:} already exists"
+      cp "$REPO/extra.tpl" "$HOME/.extra"
+      chmod 600 "$HOME/.extra"
+      warn "seeded ~/.extra (placeholders unresolved — run 'op inject -i $REPO/extra.tpl -o ~/.extra' after 'op signin')"
     fi
-  done
+  else
+    skip "~/.extra already exists"
+  fi
+
+  # Activate the repo's git hooks (scoped to this repo only).
+  if [[ -d "$REPO/.githooks" ]]; then
+    chmod +x "$REPO"/.githooks/* 2>/dev/null || true
+    git -C "$REPO" config core.hooksPath .githooks
+    ok "enabled pre-commit hooks (.githooks/)"
+  fi
   # Clean up empty backup dir.
   rmdir "$BACKUP" 2>/dev/null && rmdir "$(dirname "$BACKUP")" 2>/dev/null || true
   [[ -d "$BACKUP" ]] && info "Backups: $BACKUP"
@@ -98,11 +119,30 @@ cmd_brew() {
     skip "Homebrew already installed"
   fi
   [[ -x /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
-  info "Running brew bundle"
+  info "Running brew bundle (Brewfile)"
   brew bundle --file="$REPO/Brewfile"
-  if [[ -f "$REPO/Brewfile.work" ]]; then
-    info "Running brew bundle for Brewfile.work"
-    brew bundle --file="$REPO/Brewfile.work"
+  for extra in Brewfile.work Brewfile.local; do
+    if [[ -f "$REPO/$extra" ]]; then
+      info "Running brew bundle ($extra)"
+      brew bundle --file="$REPO/$extra"
+    fi
+  done
+}
+
+cmd_launchd() {
+  local plist_src="$REPO/launchd/com.marcello.dotfiles-autopull.plist"
+  local plist_dst="$HOME/Library/LaunchAgents/com.marcello.dotfiles-autopull.plist"
+  [[ -f "$plist_src" ]] || { err "missing $plist_src"; return 1; }
+  mkdir -p "$(dirname "$plist_dst")"
+  # Substitute placeholders and write to LaunchAgents dir.
+  sed -e "s|__DOTFILES__|$REPO|g" -e "s|__HOME__|$HOME|g" "$plist_src" > "$plist_dst"
+  # Re-load: bootout if already loaded, then bootstrap.
+  launchctl bootout "gui/$UID" "$plist_dst" 2>/dev/null || true
+  if launchctl bootstrap "gui/$UID" "$plist_dst" 2>/dev/null; then
+    ok "LaunchAgent installed: dotfiles-autopull (runs daily at 12:00 + at login)"
+    info "Log: ~/Library/Logs/dotfiles-autopull.log"
+  else
+    err "launchctl bootstrap failed"; return 1
   fi
 }
 
@@ -138,12 +178,13 @@ cmd_update() {
   cmd_link
 }
 
-cmd_all() { cmd_brew; cmd_link; cmd_doctor || true; }
+cmd_all() { cmd_brew; cmd_link; cmd_launchd; cmd_doctor || true; }
 
 case "${1:-link}" in
   link|install) cmd_link ;;
   brew)         cmd_brew ;;
   macos)        cmd_macos ;;
+  launchd)      cmd_launchd ;;
   update)       cmd_update ;;
   unlink)       cmd_unlink ;;
   doctor)       cmd_doctor ;;

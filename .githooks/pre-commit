@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+# .githooks/pre-commit — runs before every commit in the dotfiles repo only.
+# Activated by `git config core.hooksPath .githooks` (done by install.sh link).
+#
+# Fast checks: should add <100ms to commits. Bypass with --no-verify if needed.
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+fail=0
+
+# --- zsh syntax ----------------------------------------------------------------
+if command -v zsh >/dev/null; then
+  for f in .zshrc extra.tpl; do
+    [[ -f "$f" ]] || continue
+    if ! zsh -n "$f" 2>/dev/null; then
+      echo "  ✗ zsh syntax error in $f"
+      fail=1
+    fi
+  done
+fi
+
+# --- bash syntax ---------------------------------------------------------------
+for f in install.sh macos/defaults.sh scripts/*.sh .githooks/*; do
+  [[ -f "$f" ]] || continue
+  if ! bash -n "$f" 2>/dev/null; then
+    echo "  ✗ bash syntax error in $f"
+    fail=1
+  fi
+done
+
+# --- shellcheck (warnings only, not blocking) ---------------------------------
+if command -v shellcheck >/dev/null; then
+  shellcheck -S warning -e SC1090,SC1091,SC2155,SC2086 \
+    install.sh macos/defaults.sh scripts/*.sh 2>/dev/null || true
+fi
+
+# --- Brewfile syntax ----------------------------------------------------------
+if command -v brew >/dev/null && [[ -f Brewfile ]]; then
+  if ! brew bundle list --file=Brewfile >/dev/null 2>&1; then
+    echo "  ✗ Brewfile failed to parse"
+    fail=1
+  fi
+fi
+
+# --- secret leak check (basic) ------------------------------------------------
+# Catch obvious mistakes: AWS keys, GitHub PATs, generic passwords in staged files.
+staged_files=$(git diff --cached --name-only --diff-filter=ACM)
+if [[ -n "$staged_files" ]]; then
+  patterns='ghp_[A-Za-z0-9]{36}|AKIA[0-9A-Z]{16}|gho_[A-Za-z0-9]{36}|ntn_[A-Za-z0-9]+'
+  if echo "$staged_files" | xargs -I{} grep -lEH "$patterns" {} 2>/dev/null | grep -q .; then
+    echo "  ✗ Possible secret in staged files (AWS / GitHub PAT / Notion token):"
+    echo "$staged_files" | xargs -I{} grep -nEH "$patterns" {} 2>/dev/null || true
+    echo "  → If a false positive, bypass with: git commit --no-verify"
+    fail=1
+  fi
+fi
+
+if (( fail )); then
+  echo
+  echo "Pre-commit checks failed. Fix the issues above, or bypass with --no-verify."
+  exit 1
+fi

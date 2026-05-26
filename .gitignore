@@ -37,3 +37,6 @@ node_modules/
 
 # Work-specific Brewfile (uses private SSH-only tap).
 Brewfile.work
+
+# Per-machine Brewfile (laptop 1 vs laptop 2 hardware differences).
+Brewfile.local
