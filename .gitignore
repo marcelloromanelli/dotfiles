@@ -33,6 +33,7 @@ node_modules/
 
 # Local override files (consumed by install.sh, never tracked).
 .gitconfig.local
+.extra
 
 # Work-specific Brewfile (uses private SSH-only tap).
 Brewfile.work

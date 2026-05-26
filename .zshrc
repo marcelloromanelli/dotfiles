@@ -1,18 +1,13 @@
 # =============================================================================
-# GetYourGuide environment
-# =============================================================================
-# Note: these AWS CodeArtifact calls run on EVERY shell start. If they ever
-# slow your shell down, wrap them in a lazy function (ask Cursor).
-export POETRY_HTTP_BASIC_CODEARTIFACT_USERNAME=aws
-export POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD=$(aws codeartifact get-authorization-token --profile production/developer --domain getyourguide --domain-owner 130607246975 --query authorizationToken --output text)
-export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token --profile production/developer --domain getyourguide --domain-owner 130607246975 --query authorizationToken --output text)
-export MLFLOW_TRACKING_URI=databricks
-export DATABRICKS_HOST=https://dbc-d10db17d-b6c4.cloud.databricks.com/
-
-# =============================================================================
 # Homebrew (needed early so brew --prefix works for the rest of this file)
 # =============================================================================
 eval "$(/opt/homebrew/bin/brew shellenv)"
+
+# =============================================================================
+# Local / work overrides (untracked). Sourced early so anything below can
+# rely on the env vars they export (Databricks, AWS CodeArtifact, etc.).
+# =============================================================================
+[[ -r "$HOME/.extra" ]] && source "$HOME/.extra"
 
 # =============================================================================
 # Oh My Zsh
@@ -25,20 +20,17 @@ ZSH_THEME=""
 # Never block shell startup with an interactive "would you like to update?" prompt
 zstyle ':omz:update' mode reminder
 
+# Disable oh-my-zsh's built-in `user@host: ~/path` title — we set our own below
+DISABLE_AUTO_TITLE="true"
+
 # Plugins (oh-my-zsh built-ins). The brew-installed zsh-autosuggestions /
 # zsh-syntax-highlighting / zsh-completions are loaded separately below for
 # better control over load order.
 plugins=(
   git
-  macos
-  brew
-  docker
-  docker-compose
   python
-  pip
   poetry
   npm
-  fnm
   aws
   command-not-found
   colored-man-pages
@@ -62,6 +54,8 @@ setopt HIST_IGNORE_ALL_DUPS   # remove older dupes when a new one arrives
 setopt HIST_IGNORE_SPACE      # commands starting with a space are not saved
 setopt HIST_REDUCE_BLANKS     # trim extra whitespace
 setopt HIST_VERIFY            # show !! / !$ expansions before running
+setopt EXTENDED_HISTORY       # record timestamp + duration of each command
+setopt HIST_FIND_NO_DUPS      # skip dupes when searching (↑, Ctrl-R)
 
 # =============================================================================
 # Language version managers
@@ -149,7 +143,8 @@ alias myip='curl -s https://ifconfig.me && echo'
 # Run `alias | grep '^g[a-z]*='` after reload to see them all.
 # =============================================================================
 alias gs='git status'                                 # shorter than gst
-alias gcm='git commit -m'                             # override OMZ's `gcm` (= checkout main)
+# Note: OMZ provides `gcm = git checkout main`. To commit with message, use
+# OMZ's `gcmsg "msg"` (= git commit -m).
 alias gca='git commit --amend --no-edit'
 alias gcan='git commit --amend --no-edit --no-verify'
 alias gwip='git add -A && git commit -m "wip" --no-verify'
@@ -168,6 +163,45 @@ bindkey '^ ' autosuggest-accept
 
 # syntax-highlighting MUST be sourced LAST (after all other plugins)
 source "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+
+# =============================================================================
+# Smart terminal title
+# Idle:    "~/gyg/gygadmin"              (local)   /  "marcello@host: ~/path"  (ssh)
+# Running: "npm run dev — gygadmin"      (local)   /  "marcello@host: npm — gygadmin"  (ssh)
+# =============================================================================
+function _title_is_ssh() {
+  [[ -n "$SSH_CONNECTION" || -n "$SSH_CLIENT" || -n "$SSH_TTY" ]]
+}
+
+function _title_set() {
+  print -Pn "\e]0;${1}\a"
+}
+
+function _title_idle() {
+  local dir="${PWD/#$HOME/~}"
+  if _title_is_ssh; then
+    _title_set "${USER}@${HOST%%.*}: ${dir}"
+  else
+    _title_set "${dir}"
+  fi
+}
+
+function _title_running() {
+  local full_cmd="$1"
+  # Strip env-var prefixes (FOO=bar baz) and take the first token (the program)
+  local cmd="${${(z)full_cmd}[(r)[^=]##]}"
+  cmd="${cmd:t}"   # basename, in case of full paths
+  local dir="${PWD:t}"
+  if _title_is_ssh; then
+    _title_set "${USER}@${HOST%%.*}: ${cmd} — ${dir}"
+  else
+    _title_set "${cmd} — ${dir}"
+  fi
+}
+
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd  _title_idle      # before each prompt → reset to idle title
+add-zsh-hook preexec _title_running   # before each command → show command in title
 
 # =============================================================================
 # Starship prompt (must be initialized LAST so it owns PROMPT/RPROMPT)

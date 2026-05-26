@@ -1,20 +1,43 @@
-; ~/.gitconfig.local — personal identity, untracked.
+; ~/.gitconfig.local — personal identity + signing keys. Untracked.
+; Sourced via the [include] at the bottom of ~/.gitconfig.
+;
 ; Copy into place: `cp gitconfig.local.example ~/.gitconfig.local` and edit.
+; (install.sh does this automatically on first run.)
 
 [user]
 	name = Your Name
 	email = you@example.com
-	; Use ssh-key signing (modern, simpler than GPG).
-	; signingkey = ~/.ssh/id_ed25519.pub
+	; SSH signing: point at your public key. Works for both `git push` auth and
+	; commit signing. To enable, fill this in and uncomment the [gpg] +
+	; [commit] blocks below.
+	; signingkey = ssh-ed25519 AAAA...
 
-[gpg]
-	; format = ssh
+; -- SSH signing via 1Password (recommended on macOS) --
+; Requires 1Password 8 with the SSH agent enabled. Easier than gpg-agent.
+; [gpg]
+;     format = ssh
+; [gpg "ssh"]
+;     program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+
+; -- Or SSH signing without 1Password (uses ssh-keygen -Y) --
+; [gpg]
+;     format = ssh
+
+; -- Or classic GPG signing --
+; [gpg]
+;     format = openpgp
 
 [commit]
+	; Uncomment to actually sign every commit with the key above.
 	; gpgsign = true
 
-; Use a different identity inside a particular directory tree.
-; Example: at work, override the email below.
+[core]
+	; Pick your editor. Common options:  nano | vim | "code --wait" | "cursor --wait"
+	editor = vim
+
+; -- Conditional identity by directory tree --
+; Use a different email inside ~/work/ (e.g. company email), keep personal
+; identity elsewhere. Uncomment and create ~/.gitconfig.work.
 ;
 ; [includeIf "gitdir:~/work/"]
-;	path = ~/.gitconfig.work
+;     path = ~/.gitconfig.work

@@ -1,27 +1,35 @@
 # Starship prompt config — https://starship.rs/config/
-# Style: "Tokyo" — modern two-line, colored, time on the right.
-# Reload after editing: just open a new prompt (no source needed).
+# Style: Tokyo Night Powerline — solid colored blocks with arrow transitions.
+# Requires a Nerd Font (MesloLGS Nerd Font Mono is installed via Brewfile).
 
 # Breathing room between commands
 add_newline = true
 command_timeout = 1000
 
+# -----------------------------------------------------------------------------
+# Format
+# -----------------------------------------------------------------------------
+# Each block has a solid bg color; the   character between blocks is an arrow
+# whose fg matches the previous bg and whose bg matches the next one.
+# Conditional blocks (git/lang/aws) include their own leading arrow inside their
+# format, so when they're empty the arrow vanishes with them.
+# -----------------------------------------------------------------------------
 format = """
-[](fg:#bb9af7) \
-$username\
-$hostname\
-[](fg:#7aa2f7) $directory\
+[](fg:#bb9af7)\
+[  ](bg:#bb9af7 fg:#1a1b26)\
+[](fg:#bb9af7 bg:#7aa2f7)\
+[ $directory ](bg:#7aa2f7 fg:#1a1b26)\
+[](fg:#7aa2f7 bg:#9ece6a)\
 $git_branch\
 $git_status\
 $python\
 $nodejs\
 $aws\
 $cmd_duration\
+$fill\
+$time\
 $line_break\
 $character"""
-
-right_format = """
-$time"""
 
 # -----------------------------------------------------------------------------
 # Prompt character
@@ -32,20 +40,10 @@ error_symbol = "[❯](bold #f7768e)"
 vimcmd_symbol = "[❮](bold #9ece6a)"
 
 # -----------------------------------------------------------------------------
-# Leading user / host (Apple glyph is in the main format string above)
+# Fill — pushes the time to the right edge
 # -----------------------------------------------------------------------------
-# Only show username when it's not the default (e.g. SSH or sudo)
-[username]
-show_always = false
-style_user = "bold #e0af68"
-style_root = "bold #f7768e"
-format = "[$user]($style) "
-
-# Only show hostname over SSH
-[hostname]
-ssh_only = true
-style = "bold #e0af68"
-format = "at [$hostname]($style) "
+[fill]
+symbol = " "
 
 # -----------------------------------------------------------------------------
 # Directory
@@ -54,81 +52,80 @@ format = "at [$hostname]($style) "
 truncation_length = 3
 truncate_to_repo = true
 truncation_symbol = "…/"
-style = "bold #7dcfff"
+format = "$path"
 read_only = " 󰌾"
-read_only_style = "#f7768e"
 
 [directory.substitutions]
-"Documents" = "󰈙 "
-"Downloads" = " "
-"Music" = "󰝚 "
-"Pictures" = " "
-"Developer" = "󰲋 "
+"Documents" = "󰈙"
+"Downloads" = ""
+"Music" = "󰝚"
+"Pictures" = ""
+"Developer" = "󰲋"
 
 # -----------------------------------------------------------------------------
-# Git
+# Git — branch + status share the same green block.
+# git_branch carries the leading arrow from blue→green; if absent (non-git
+# folder), the whole green block disappears and the language/aws blocks
+# transition from blue directly.
 # -----------------------------------------------------------------------------
 [git_branch]
-symbol = " "
-style = "bold #bb9af7"
-format = "[ $symbol$branch]($style)"
+symbol = ""
+format = '[ $symbol $branch ](bg:#9ece6a fg:#1a1b26)'
 
 [git_status]
-style = "bold #e0af68"
-format = '[ $all_status$ahead_behind]($style)'
-ahead = " ⇡${count}"
-behind = " ⇣${count}"
-diverged = " ⇡${ahead_count}⇣${behind_count}"
-conflicted = " ="
-untracked = " ?${count}"
-modified = " !${count}"
-staged = " +${count}"
-stashed = " \\$${count}"
-deleted = " ✘${count}"
+format = '[$all_status$ahead_behind ](bg:#9ece6a fg:#1a1b26)'
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇡${ahead_count}⇣${behind_count}"
+conflicted = "= "
+untracked = "?${count} "
+modified = "!${count} "
+staged = "+${count} "
+stashed = "\\$${count} "
+deleted = "✘${count} "
 
 # -----------------------------------------------------------------------------
-# Languages / cloud — only show inside relevant projects
+# Languages — share the red block. python/nodejs each carry the leading arrow
+# (assumes the typical case where git was present right before).
 # -----------------------------------------------------------------------------
 [python]
-symbol = " "
-style = "bold #f7768e"
-format = '[ $symbol$pyenv_prefix(${version} )(\($virtualenv\) )]($style)'
+symbol = ""
+format = '[](fg:#9ece6a bg:#f7768e)[ $symbol $pyenv_prefix${version} ](bg:#f7768e fg:#1a1b26)'
 pyenv_version_name = true
 
 [nodejs]
-symbol = " "
-style = "bold #9ece6a"
-format = "[ $symbol($version )]($style)"
+symbol = ""
+format = '[](fg:#9ece6a bg:#f7768e)[ $symbol $version ](bg:#f7768e fg:#1a1b26)'
 detect_files = ["package.json", ".node-version", ".nvmrc"]
 
+# -----------------------------------------------------------------------------
+# AWS — orange block, only shows when AWS_PROFILE is set
+# -----------------------------------------------------------------------------
 [aws]
-symbol = " "
-style = "bold #e0af68"
-format = '[ $symbol($profile )(\($region\) )]($style)'
+symbol = ""
+format = '[](fg:#f7768e bg:#ff9e64)[ $symbol $profile ](bg:#ff9e64 fg:#1a1b26)'
 
 [aws.region_aliases]
 eu-central-1 = "eu-c1"
 us-east-1 = "us-e1"
 
 # -----------------------------------------------------------------------------
-# Command duration — only shown when something took >2s
+# Command duration — only shown when last command took >2s
 # -----------------------------------------------------------------------------
 [cmd_duration]
 min_time = 2_000
-style = "bold #f7768e"
-format = " [took $duration]($style)"
+format = '[](fg:#ff9e64 bg:#1a1b26) [took $duration](#f7768e)'
 
 # -----------------------------------------------------------------------------
-# Time on the right edge
+# Time — right-aligned via $fill
 # -----------------------------------------------------------------------------
 [time]
 disabled = false
-style = "bold #565f89"
-format = '[$time]($style)'
+format = '[ $time ](#565f89)'
 time_format = "%H:%M"
 
 # -----------------------------------------------------------------------------
-# Hide noisy modules
+# Hide noise
 # -----------------------------------------------------------------------------
 [package]
 disabled = true

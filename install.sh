@@ -6,6 +6,7 @@
 #   ./install.sh                # link everything (default)
 #   ./install.sh brew           # install Homebrew + run brew bundle
 #   ./install.sh macos          # apply macos-defaults.sh (asks first)
+#   ./install.sh update         # git pull + re-link
 #   ./install.sh doctor         # verify everything is wired up
 #   ./install.sh unlink         # remove all symlinks
 #   ./install.sh all            # brew + link + doctor
@@ -65,13 +66,18 @@ cmd_link() {
   for entry in "${LINKS[@]}"; do
     link_one $entry
   done
-  # Seed the untracked gitconfig.local once.
-  if [[ ! -e "$HOME/.gitconfig.local" ]]; then
-    cp "$REPO/gitconfig.local.example" "$HOME/.gitconfig.local"
-    ok "seeded ~/.gitconfig.local (edit me)"
-  else
-    skip "~/.gitconfig.local already exists"
-  fi
+  # Seed untracked override files once each (never overwrite).
+  for pair in "gitconfig.local.example:.gitconfig.local" \
+              "extra.example:.extra"; do
+    local src="${pair%%:*}" dst="$HOME/${pair##*:}"
+    if [[ ! -e "$dst" ]]; then
+      cp "$REPO/$src" "$dst"
+      chmod 600 "$dst"
+      ok "seeded ~/${pair##*:} (edit me)"
+    else
+      skip "~/${pair##*:} already exists"
+    fi
+  done
   # Clean up empty backup dir.
   rmdir "$BACKUP" 2>/dev/null && rmdir "$(dirname "$BACKUP")" 2>/dev/null || true
   [[ -d "$BACKUP" ]] && info "Backups: $BACKUP"
@@ -120,10 +126,16 @@ cmd_doctor() {
       err "~/$2 not linked"; fail=1
     fi
   done
-  for c in brew zsh git starship eza bat rg fd gh; do
+  for c in brew zsh git starship eza bat rg fd gh delta; do
     command -v "$c" >/dev/null && ok "$c" || warn "$c missing"
   done
   (( fail == 0 )) && ok "all good" || { err "doctor found issues"; return 1; }
+}
+
+cmd_update() {
+  info "git pull && relink"
+  git -C "$REPO" pull --ff-only || { err "git pull failed"; return 1; }
+  cmd_link
 }
 
 cmd_all() { cmd_brew; cmd_link; cmd_doctor || true; }
@@ -132,6 +144,7 @@ case "${1:-link}" in
   link|install) cmd_link ;;
   brew)         cmd_brew ;;
   macos)        cmd_macos ;;
+  update)       cmd_update ;;
   unlink)       cmd_unlink ;;
   doctor)       cmd_doctor ;;
   all)          cmd_all ;;

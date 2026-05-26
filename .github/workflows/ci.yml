@@ -2,7 +2,7 @@ name: ci
 
 on:
   push:
-    branches: [main, modernize-2026]
+    branches: [main]
   pull_request:
     branches: [main]
 

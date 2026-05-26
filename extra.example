@@ -1,0 +1,67 @@
+#!/usr/bin/env zsh
+# ~/.extra — local, untracked, sourced from ~/.zshrc.
+# Edit this file with your actual values. It's gitignored.
+#
+# Common uses:
+#   - Work env vars (databricks, mlflow, internal tokens)
+#   - Secrets (API keys, when not loaded from 1Password)
+#   - Machine-specific overrides
+
+# =============================================================================
+# Example: work env vars
+# =============================================================================
+# export MLFLOW_TRACKING_URI=databricks
+# export DATABRICKS_HOST=https://your-org.cloud.databricks.com/
+
+# =============================================================================
+# Example: AWS CodeArtifact token, cached on disk to keep shells fast.
+# Run `ca-refresh` after `aws sso login` to refresh.
+# =============================================================================
+# _CA_CACHE_FILE="${TMPDIR:-/tmp}/codeartifact-token-${USER}"
+# _CA_CACHE_TTL=36000   # 10h
+#
+# _ca_token() {
+#   if [[ -r "$_CA_CACHE_FILE" ]]; then
+#     local mtime
+#     mtime=$(stat -f %m "$_CA_CACHE_FILE" 2>/dev/null || stat -c %Y "$_CA_CACHE_FILE" 2>/dev/null)
+#     if (( $(date +%s) - mtime < _CA_CACHE_TTL )); then
+#       cat "$_CA_CACHE_FILE"; return 0
+#     fi
+#   fi
+#   command -v aws >/dev/null || return 1
+#   local token
+#   token=$(aws codeartifact get-authorization-token \
+#             --profile YOUR_PROFILE \
+#             --domain YOUR_DOMAIN \
+#             --domain-owner YOUR_ACCOUNT_ID \
+#             --query authorizationToken --output text 2>/dev/null) || return 1
+#   printf '%s' "$token" > "$_CA_CACHE_FILE"
+#   chmod 600 "$_CA_CACHE_FILE"
+#   printf '%s' "$token"
+# }
+#
+# ca-refresh() {
+#   rm -f "$_CA_CACHE_FILE"
+#   if _t=$(_ca_token); then
+#     export POETRY_HTTP_BASIC_CODEARTIFACT_USERNAME=aws
+#     export POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD="$_t"
+#     export CODEARTIFACT_AUTH_TOKEN="$_t"
+#     echo "CodeArtifact token refreshed."
+#     unset _t
+#   else
+#     echo "Failed to fetch CodeArtifact token." >&2; return 1
+#   fi
+# }
+#
+# if _t=$(_ca_token 2>/dev/null); then
+#   export POETRY_HTTP_BASIC_CODEARTIFACT_USERNAME=aws
+#   export POETRY_HTTP_BASIC_CODEARTIFACT_PASSWORD="$_t"
+#   export CODEARTIFACT_AUTH_TOKEN="$_t"
+#   unset _t
+# fi
+
+# =============================================================================
+# Example: secrets from 1Password CLI
+# =============================================================================
+# export OPENAI_API_KEY="$(op read 'op://Personal/OpenAI/credential')"
+# export ANTHROPIC_API_KEY="$(op read 'op://Personal/Anthropic/credential')"
