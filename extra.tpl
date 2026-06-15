@@ -3,7 +3,7 @@
 # or copied as-is if 1Password CLI is unavailable.
 #
 # To regenerate manually:    op inject -i extra.tpl -o ~/.extra && chmod 600 ~/.extra
-# To inspect placeholders:   grep -o 'op://[^ )}]*' extra.tpl
+# To inspect placeholders:   grep -oE 'op:/+[^ )}]*' extra.tpl
 
 # =============================================================================
 # GetYourGuide
@@ -71,8 +71,22 @@ if _t=$(_ca_token 2>/dev/null); then
 fi
 
 # =============================================================================
-# Personal secrets (example — uncomment + adapt)
+# Personal secrets (optional — add your own, modeled on the GYG block above)
 # =============================================================================
-# export OPENAI_API_KEY="op://Private/OpenAI/credential"
-# export ANTHROPIC_API_KEY="op://Private/Anthropic/credential"
-# export GITHUB_TOKEN="op://Private/GitHub PAT/credential"
+# Reference format (see https://developer.1password.com/docs/cli/secret-references):
+#     <vault>/<item>/<field>      e.g. Private/OpenAI/credential
+# Lines below are placeholders (not real op references, so op inject ignores
+# them); replace the placeholder with a real reference and uncomment.
+# export OPENAI_API_KEY="<vault/item/field>"
+# export ANTHROPIC_API_KEY="<vault/item/field>"
+# export GITHUB_TOKEN="<vault/item/field>"
+
+# =============================================================================
+# Cursor MCP server credentials  (consumed by ~/.cursor/mcp.json via ${env:...})
+# =============================================================================
+# Create a 1Password item "CursorMCP" (Private vault) with two password fields:
+#   - github_token   GitHub token used as the Bearer for the "github" MCP server
+#   - coolify_token  Coolify access token for the "coolify" MCP server
+# Then: op signin && op inject -i extra.tpl -o ~/.extra && chmod 600 ~/.extra
+export GITHUB_MCP_TOKEN="op://Private/CursorMCP/github_token"
+export COOLIFY_ACCESS_TOKEN="op://Private/CursorMCP/coolify_token"
