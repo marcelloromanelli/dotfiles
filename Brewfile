@@ -45,5 +45,6 @@ mas "WhatsApp",       id: 310633997
 
 # Global npm packages (`brew bundle` runs `npm install -g`).
 npm "@anthropic-ai/claude-code"  # `claude` CLI
+npm "@openai/codex"              # `codex` CLI, routed through Bifrost via ~/.codex/config.toml
 npm "@zendesk/zcli"
 npm "pnpm"
