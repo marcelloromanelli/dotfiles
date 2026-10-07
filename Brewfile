@@ -10,6 +10,7 @@ brew "fd"                        # friendlier find
 brew "fnm"                       # Fast Node Manager
 brew "gh"                        # GitHub CLI
 brew "git-delta"                 # syntax-highlighted git diffs (used by .gitconfig)
+brew "jq"                        # JSON CLI (Claude Code status line)
 brew "libpq"                     # psql client (no postgres server conflict)
 brew "mas"                       # Mac App Store CLI (sync /Brewfile / App Store)
 brew "mole"                      # Mac maintenance: `mo clean / uninstall / analyze / status`

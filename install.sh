@@ -26,6 +26,7 @@ LINKS=(
   ".editorconfig         .editorconfig"
   "starship.toml         .config/starship.toml"
   "ghostty.config        .config/ghostty/config"
+  "claude/statusline.sh  .claude/statusline.sh"
 )
 
 if [[ -t 1 ]]; then
@@ -120,6 +121,22 @@ cmd_link() {
       done
     done
   fi
+  # Point Claude Code's status line at the linked script. settings.json holds
+  # per-machine secrets (MCP tokens), so merge the one key instead of tracking it.
+  local cc="$HOME/.claude/settings.json"
+  if command -v jq >/dev/null; then
+    [[ -e "$cc" ]] || echo '{}' > "$cc"
+    if [[ "$(jq -r '.statusLine.command // empty' "$cc")" == "~/.claude/statusline.sh" ]]; then
+      skip "~/.claude/settings.json statusLine (already set)"
+    else
+      jq '.statusLine = {"type":"command","command":"~/.claude/statusline.sh","refreshInterval":30}' \
+        "$cc" > "$cc.tmp" && mv "$cc.tmp" "$cc"
+      ok "set statusLine in ~/.claude/settings.json"
+    fi
+  else
+    warn "jq missing — statusLine not set in ~/.claude/settings.json"
+  fi
+
   # Clean up empty backup dir.
   rmdir "$BACKUP" 2>/dev/null && rmdir "$(dirname "$BACKUP")" 2>/dev/null || true
   if [[ -d "$BACKUP" ]]; then info "Backups: $BACKUP"; fi
