@@ -40,3 +40,5 @@ Brewfile.work
 
 # Per-machine Brewfile (laptop 1 vs laptop 2 hardware differences).
 Brewfile.local
+
+**/.claude/settings.local.json

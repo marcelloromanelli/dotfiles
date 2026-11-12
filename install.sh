@@ -165,6 +165,8 @@ cmd_brew() {
       brew bundle --file="$REPO/$extra"
     fi
   done
+  info "Installing Codex with npm in ~/.local"
+  env -u _VOLTA_TOOL_RECURSION npm install -g --prefix "$HOME/.local" @openai/codex
 }
 
 cmd_launchd() {

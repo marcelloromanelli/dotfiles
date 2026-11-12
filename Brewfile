@@ -8,6 +8,7 @@ brew "bat"                       # syntax-highlighted cat
 brew "eza"                       # modern ls with icons + git status
 brew "fd"                        # friendlier find
 brew "fnm"                       # Fast Node Manager
+brew "fzf"                       # fuzzy finder; .zshrc wires up Ctrl-R / Ctrl-T
 brew "gh"                        # GitHub CLI
 brew "git-delta"                 # syntax-highlighted git diffs (used by .gitconfig)
 brew "jq"                        # JSON CLI (Claude Code status line)
@@ -18,6 +19,7 @@ brew "pyenv"                     # Python version manager
 brew "render"                    # Render.com CLI
 brew "ripgrep"                   # faster grep, respects .gitignore
 brew "starship"                  # cross-shell prompt
+brew "zoxide"                    # smart `cd` replacement (`z <pattern>`)
 brew "zsh-autosuggestions"
 brew "zsh-completions"
 brew "zsh-syntax-highlighting"
@@ -46,6 +48,6 @@ mas "WhatsApp",       id: 310633997
 
 # Global npm packages (`brew bundle` runs `npm install -g`).
 npm "@anthropic-ai/claude-code"  # `claude` CLI
-npm "@openai/codex"              # `codex` CLI, routed through Bifrost via ~/.codex/config.toml
+# Codex uses npm's ~/.local prefix via install.sh and codex-update.
 npm "@zendesk/zcli"
 npm "pnpm"

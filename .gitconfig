@@ -55,6 +55,16 @@
 [column]
 	ui = auto
 
+; Use `gh` as the credential helper for github.com / gist.github.com so HTTPS
+; pushes/pulls reuse your `gh auth login` token instead of prompting.
+[credential "https://github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
+
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
+
 [commit]
 	; Uncomment if your gpg/ssh signing is set up.
 	; gpgsign = true

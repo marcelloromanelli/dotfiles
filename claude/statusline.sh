@@ -24,6 +24,7 @@ prstate=\(.pr.review_state // "")
 wt=\(.worktree.name // .workspace.git_worktree // "")
 vim=\(.vim.mode // "")
 cache=\(.prompt_cache.warm // "")
+spend=\(.rate_limits.spend_limit.used_percentage // "")
 "' <<<"$input")"
 
 # Tokyo Night palette (R;G;B)
@@ -49,6 +50,24 @@ m="󰚩 ${model:-Claude}"
 [ -n "$effort" ] && m+=" · ${effort}"
 [ "$fast" = "true" ] && m+=" ↯"
 seg "$PURPLE" "$DARK" "$m"
+
+# Billing: subscription vs pay-per-token. There's no explicit field, so infer it.
+# An API key in the env beats a claude.ai login; rate_limits only exist for
+# Pro/Max; once a response has arrived without them, it's Console API billing.
+billing=''
+if [ -n "$CLAUDE_CODE_USE_BEDROCK" ]; then billing=api; provider=Bedrock
+elif [ -n "$CLAUDE_CODE_USE_VERTEX" ]; then billing=api; provider=Vertex
+elif [ -n "$CLAUDE_CODE_USE_FOUNDRY" ]; then billing=api; provider=Foundry
+elif [ -n "$ANTHROPIC_API_KEY" ] || [ -n "$ANTHROPIC_AUTH_TOKEN" ]; then billing=api; provider=API
+elif [ -n "$spend" ]; then billing=gateway
+elif [ -n "$h5" ] || [ -n "$d7" ]; then billing=sub
+elif [ -n "$cache" ]; then billing=api; provider=API
+fi
+case "$billing" in
+  sub) seg "$TEAL" "$DARK" "󰄛 sub" ;;
+  gateway) seg "$CYAN" "$DARK" "󰒍 gateway" ;;
+  api) seg "$ORANGE" "$DARK" "\$ $provider" ;;
+esac
 
 # Directory, truncated to the last 3 components like Starship
 if [ -n "$cwd" ]; then
@@ -137,7 +156,11 @@ limit() { # label used_pct resets_at width
 [ -n "$h5" ] && limit 5h "$h5" "$h5r" 5
 [ -n "$d7" ] && limit 7d "$d7" "$d7r" 5
 
-[ -n "$cost" ] && items+=("$(fg "$YELLOW")$(printf '$%.2f' "$cost")")
+# Cost is list-price; on a subscription it's notional, so mute it and mark it ≈
+if [ -n "$cost" ]; then
+  if [ "$billing" = "sub" ]; then items+=("$(fg "$MUTED")$(printf '≈$%.2f' "$cost")")
+  else items+=("$(fg "$YELLOW")$(printf '$%.2f' "$cost")"); fi
+fi
 [ "$dur" -gt 0 ] && items+=("$(fg "$TEAL")󱦟 $(human_dur $((dur / 1000)))")
 if [ "$added" -gt 0 ] || [ "$removed" -gt 0 ]; then
   items+=("$(fg "$GREEN")+${added} $(fg "$RED")−${removed}")

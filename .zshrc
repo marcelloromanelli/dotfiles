@@ -60,9 +60,9 @@ setopt HIST_FIND_NO_DUPS      # skip dupes when searching (↑, Ctrl-R)
 # =============================================================================
 # Language version managers
 # =============================================================================
-# fnm (Fast Node Manager)
+# Use fnm only when Volta is unavailable; never activate both Node managers.
 FNM_PATH="/opt/homebrew/opt/fnm/bin"
-if [ -d "$FNM_PATH" ]; then
+if [[ ! -x "$HOME/.volta/bin/volta" && -d "$FNM_PATH" ]]; then
   eval "$(fnm env --use-on-cd)"
 fi
 
@@ -79,11 +79,73 @@ export PATH="$HOME/.local/bin:$PATH"              # user-local bins
 [ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
 
 # pnpm
-export PNPM_HOME="/Users/marcello/Library/pnpm"
+export PNPM_HOME="$HOME/Library/pnpm"
 case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
+
+# Bun
+if [[ -d "$HOME/.bun" ]]; then
+  export BUN_INSTALL="$HOME/.bun"
+  export PATH="$BUN_INSTALL/bin:$PATH"
+  [[ -s "$BUN_INSTALL/_bun" ]] && source "$BUN_INSTALL/_bun"
+fi
+
+# Volta owns Node, npm, and the CLIs installed through Volta.
+if [[ -x "$HOME/.volta/bin/volta" ]]; then
+  export VOLTA_HOME="$HOME/.volta"
+  unset _VOLTA_TOOL_RECURSION
+  export PATH="$VOLTA_HOME/bin:$PATH"
+fi
+
+# Keep Codex in npm's user-local prefix, outside Volta's package toolchain.
+# Codex's built-in updater must use the same prefix as its launcher.
+codex() {
+  env -u _VOLTA_TOOL_RECURSION npm_config_prefix="$HOME/.local" \
+    "$HOME/.local/bin/codex" "$@"
+}
+
+codex-update() {
+  # An explicit prefix prevents Volta from intercepting the global install.
+  env -u _VOLTA_TOOL_RECURSION npm install -g --prefix "$HOME/.local" @openai/codex@latest || return
+  rehash
+  env -u _VOLTA_TOOL_RECURSION "$HOME/.local/bin/codex" --version
+}
+
+# Apollo Rover (only if installed)
+[[ -d "$HOME/.rover/bin" ]] && export PATH="$HOME/.rover/bin:$PATH"
+
+# Google Cloud SDK (path + completions)
+if [[ -d "$HOME/google-cloud-sdk" ]]; then
+  [[ -f "$HOME/google-cloud-sdk/path.zsh.inc" ]]       && source "$HOME/google-cloud-sdk/path.zsh.inc"
+  [[ -f "$HOME/google-cloud-sdk/completion.zsh.inc" ]] && source "$HOME/google-cloud-sdk/completion.zsh.inc"
+fi
+
+# =============================================================================
+# Third-party shell integrations
+# =============================================================================
+# fzf — Ctrl-R for history, Ctrl-T for files, ALT-c for cd
+if command -v fzf >/dev/null; then
+  source <(fzf --zsh)
+fi
+
+# zoxide — smart cd that learns; `z <pattern>` jumps, `zi` is interactive
+if command -v zoxide >/dev/null; then
+  eval "$(zoxide init zsh)"
+fi
+
+# Docker CLI completions (Docker Desktop drops these in ~/.docker/completions)
+if [[ -d "$HOME/.docker/completions" ]]; then
+  fpath=("$HOME/.docker/completions" $fpath)
+fi
+
+# SDKMAN — Java/Kotlin/etc. version manager. Sourcing this re-runs compinit
+# internally, so it must come BEFORE the zsh plugins block below.
+if [[ -d "$HOME/.sdkman" ]]; then
+  export SDKMAN_DIR="$HOME/.sdkman"
+  [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
+fi
 
 # =============================================================================
 # Modern CLI replacements
@@ -303,6 +365,27 @@ _dots_dirty_check() {
   printf '\033[33m⚠\033[0m dotfiles dirty for %dh; run \033[1mdots sync "msg"\033[0m to ship\n' "$(( age / 3600 ))"
 }
 _dots_dirty_check
+
+# =============================================================================
+# Cloudflare WARP — toggle on/off on demand (not auto-started)
+# =============================================================================
+_WARP_CLI=/usr/local/bin/warp-cli
+_WARP_DAEMON_PLIST=/Library/LaunchDaemons/com.cloudflare.1dot1dot1dot1.macos.warp.daemon.plist
+_WARP_DAEMON_ID=system/com.cloudflare.1dot1dot1dot1.macos.warp.daemon
+
+function warp-off() {
+  "$_WARP_CLI" disconnect 2>/dev/null
+  sudo launchctl disable "$_WARP_DAEMON_ID"
+  sudo launchctl unload "$_WARP_DAEMON_PLIST"
+  echo "WARP disabled."
+}
+
+function warp-on() {
+  sudo launchctl enable "$_WARP_DAEMON_ID"
+  sudo launchctl load "$_WARP_DAEMON_PLIST"
+  sleep 1
+  "$_WARP_CLI" connect && "$_WARP_CLI" status
+}
 
 # =============================================================================
 # Starship prompt (must be initialized LAST so it owns PROMPT/RPROMPT)
